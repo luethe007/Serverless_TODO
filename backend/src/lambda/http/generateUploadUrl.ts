@@ -2,8 +2,11 @@ import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { addAttachment } from '../../businessLogic/todos'
+import { getUserId } from '../utils'
 
-const s3 = new AWS.S3({
+const AWSXRay = require('aws-xray-sdk')
+const XAWS = AWSXRay.captureAWS(AWS)
+const s3 = new XAWS.S3({
   signatureVersion: 'v4'
 })
 
@@ -12,10 +15,7 @@ const bucket = process.env.TODO_BUCKET
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
-
-  const authorization_header = event.headers.Authorization
-  const split = authorization_header.split(' ')
-  const jwtToken = split[1]
+  const userId = getUserId(event)
 
   const url =  s3.getSignedUrl('putObject', {
     Bucket: bucket,
@@ -23,7 +23,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     Expires: urlExpiration
   })
 
-  await addAttachment(todoId, jwtToken)
+  await addAttachment(todoId, userId)
 
   return {
     statusCode: 200,

@@ -1,20 +1,19 @@
 import * as AWS from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
-const logger = createLogger('todoAccess')
-
 import { TodoUpdate } from '../models/TodoUpdate'
 import { TodoItem } from '../models/TodoItem'
 
 const AWSXRay = require('aws-xray-sdk')
 const XAWS = AWSXRay.captureAWS(AWS)
+const logger = createLogger('todoAccess')
 
 export class TodoAccess {
     constructor(
       private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
       private readonly todoTable = process.env.TODO_TABLE,
-      private readonly index = process.env.INDEX,
-      private readonly bucket = process.env.TODO_BUCKET
+      private readonly bucket = process.env.TODO_BUCKET,
+      private readonly index = process.env.INDEX
     ) {}
   
     async getAllTodos(userId: string): Promise<TodoItem[]> {
@@ -30,9 +29,7 @@ export class TodoAccess {
       }
   
       const result = await this.docClient.query(params).promise()
-  
-      const items = result.Items
-      return items as TodoItem[]
+      return result.Items as TodoItem[]
     }
   
     async createTodo(todoItem: TodoItem): Promise<TodoItem> {
@@ -56,14 +53,14 @@ export class TodoAccess {
           userId: userId
         },
         UpdateExpression:
-          'SET #todo_name = :name, dueDate = :dueDate, done = :done',
+          'SET #todo = :n, dueDate = :dd, done = :d',
         ExpressionAttributeNames: {
-          '#todo_name': 'name'
+          '#todo': 'name'
         },
         ExpressionAttributeValues: {
-          ':name': updateTodo.name,
-          ':dueDate': updateTodo.dueDate,
-          ':done': updateTodo.done,
+          ':n': updateTodo.name,
+          ':dd': updateTodo.dueDate,
+          ':d': updateTodo.done,
           ':userId': userId
         },
         IndexName: this.index,
@@ -75,7 +72,7 @@ export class TodoAccess {
     }
   
     async deleteTodo(todoId: string, userId: string): Promise<void> {
-      logger.info('Deleting todo', { todoId, userId })
+      logger.info('Delete todo item', { todoId, userId })
       const params = {
         TableName: this.todoTable,
         Key: {
@@ -94,7 +91,7 @@ export class TodoAccess {
     }
   
     async addAttachment(todoId: string, userId: string): Promise<void> {
-      logger.info('Updating todo')
+      logger.info('Update todo item')
   
       var params = {
         TableName: this.todoTable,

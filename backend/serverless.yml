@@ -12,15 +12,16 @@ package:
   individually: true
 
 provider:
+
+  tracing:
+    lambda: true
+    apiGateway: true
+
   name: aws
   runtime: nodejs12.x
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-central-1'}
-
-  tracing:
-    lambda: true
-    apiGateway: true
 
   environment:
     TODO_TABLE: Todo-${self:provider.stage}

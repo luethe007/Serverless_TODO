@@ -1,3 +1,6 @@
+/**
+ * Data Model of a TodoItem.
+ */
 export interface TodoItem {
   userId: string
   todoId: string
