@@ -6,7 +6,7 @@ I implemented a TODO application using AWS Lambda and Serverless framework. This
 
 ## Backend
 
-To deploy an application run the following commands:
+To deploy the application run the following commands:
 
 ```
 cd backend
